@@ -12,6 +12,13 @@ function unwatchedTree(dir) {
 
 module.exports = {
   name: 'Ember CLI Twitter Typeahead',
+
+  included: function(app) {
+    this._super.included(app);
+
+    app.import(app.bowerDirectory + '/typeahead.js/dist/typeahead.bundle.js');
+  },
+
   treeFor: function treeFor(name) {
     var treePath = path.join('node_modules', 'ember-cli-twitter-typeahead', name + '-addon');
 
