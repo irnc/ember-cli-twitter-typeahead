@@ -43,6 +43,14 @@ export default Ember.TextField.extend({
     });
   },
 
+  source(query, cb) {
+    var content = this.get('content');
+    if (!query || query === '*'){
+      return cb(content);
+    }
+    cb(this._filterContent(query));
+  },
+
   _initializeTypeahead: function(){
     this.$().typeahead({
     }, {
@@ -50,13 +58,7 @@ export default Ember.TextField.extend({
       displayKey: function(object){
         return Ember.get(object, this.get('displayKey'));
       }.bind(this),
-      source: function(query, cb){
-        var content = this.get('content');
-        if (!query || query === '*'){
-          return cb(content);
-        }
-        cb(this._filterContent(query));
-      }.bind(this),
+      source: this.get('source').bind(this),
       templates: {
         footer: function(object){
           if (object.isEmpty) {
