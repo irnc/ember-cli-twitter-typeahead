@@ -21,31 +21,11 @@ export default Ember.TextField.extend({
     Ember.run.scheduleOnce('afterRender', this, '_initializeTypeahead');
   }),
 
+  options: {},
   classNames: [ 'form-control' ],
 
-  keyUp: function(event){
-    if (event.which === 13){
-      var $dropdownMenu = this.$().siblings('.tt-dropdown-menu');
-      var $suggestions = $dropdownMenu.find('.tt-suggestion:not(.enter-suggest)');
-      if ($suggestions.length) {
-        $suggestions.first().click();
-      } else {
-        this.sendAction('on-select-without-match', this, this.$().val());
-      }
-    }
-  },
-
-  _filterContent: function(query) {
-    var regex = new RegExp(query, 'i');
-    var valueKey = this.get('valueToken');
-    return this.get('content').filter(function(thing){
-      return regex.test(Ember.get(thing, valueKey));
-    });
-  },
-
-  _initializeTypeahead: function(){
-    this.$().typeahead({
-    }, {
+  dataset: Ember.computed('displayKey', 'content', function () {
+    return {
       minLength: 0,
       displayKey: function(object){
         return Ember.get(object, this.get('displayKey'));
@@ -70,9 +50,41 @@ export default Ember.TextField.extend({
         }.bind(this)
       }
       /* jshint unused:false */
-    }).on('typeahead:selected typeahead:autocompleted', Ember.run.bind(this, function(e, obj, dataSet){
-      this.set('selection', obj);
-    }));
+    };
+  }),
+
+  keyUp: function(event){
+    if (event.which === 13){
+      var $dropdownMenu = this.$().siblings('.tt-dropdown-menu');
+      var $suggestions = $dropdownMenu.find('.tt-suggestion:not(.enter-suggest)');
+      if ($suggestions.length) {
+        $suggestions.first().click();
+      } else {
+        this.sendAction('on-select-without-match', this, this.$().val());
+      }
+    }
+  },
+
+  _filterContent: function(query) {
+    var regex = new RegExp(query, 'i');
+    var valueKey = this.get('valueToken');
+    return this.get('content').filter(function(thing){
+      return regex.test(Ember.get(thing, valueKey));
+    });
+  },
+
+  _initializeTypeahead: function(){
+    var typeahead = this.$().typeahead(this.get('options'), this.get('dataset'));
+    var events = [
+      'typeahead:selected',
+      'typeahead:autocompleted'
+    ];
+
+    typeahead.on(events.join(' '), Ember.run.bind(this, this.setSelection));
+  },
+
+  setSelection: function(event, obj){
+    this.set('selection', obj);
   },
 
   focusOut: function(){
